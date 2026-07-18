@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Aucta House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest-deep:#122019; --forest-mid:#1c3229; --forest-soft:#25402f;
+    --brass:#c9a227; --brass-light:#e6c968;
+    --ivory:#f6f1e4; --ivory-dim:#e8dfc7; --ink:#12140f;
+    --live-red:#c0392b; --live-green:#3f7d52;
+    --line: rgba(18,20,15,0.1); --line-dark: rgba(246,241,228,0.14);
+    --radius: 2px;
+    --ff-display:'Fraunces', serif; --ff-body:'Inter', sans-serif; --ff-mono:'JetBrains Mono', monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--ivory); color:var(--ink); font-family:var(--ff-body); -webkit-font-smoothing:antialiased;}
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none;}
+  ::selection{background:var(--brass); color:var(--forest-deep);}
+  :focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important; transition-duration:.01ms !important;}}
+  .wrap{max-width:1240px; margin:0 auto; padding:0 32px;}
+
+  .site-nav{
+    background:var(--ink); border-bottom:1px solid var(--line-dark);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 28px; position:sticky; top:0; z-index:200; gap:20px;
+  }
+  .site-nav-brand{display:flex; align-items:center; gap:8px; font-family:var(--ff-display); font-weight:600; font-size:1rem; color:var(--ivory); flex-shrink:0;}
+  .brand-mark{width:24px; height:24px; border-radius:50%; border:1.5px solid var(--brass); display:flex; align-items:center; justify-content:center; font-size:.62rem; color:var(--brass); font-family:var(--ff-mono);}
+  .site-links{display:flex; align-items:center; gap:4px; overflow-x:auto; scrollbar-width:none;}
+  .site-links::-webkit-scrollbar{display:none;}
+  .site-links a{
+    font-family:var(--ff-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--ivory-dim); padding:8px 13px; border-radius:20px; white-space:nowrap;
+    transition:background .2s ease, color .2s ease;
+  }
+  .site-links a:hover{background:rgba(246,241,228,0.08); color:var(--ivory);}
+  .site-links a.current{background:var(--brass); color:var(--forest-deep); font-weight:700;}
+  .site-links a.accent{border:1px solid var(--brass); color:var(--brass-light);}
+  .site-links a.accent:hover{background:var(--brass); color:var(--forest-deep);}
+  @media (max-width:700px){.site-nav{padding:10px 16px;} .site-nav-brand span:last-child{display:none;}}
+
+  .stat-label{font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:#8a8a7f;}
+  .stat-value{font-family:var(--ff-mono); font-weight:700; font-size:1.15rem; color:var(--forest-deep);}
+
+  /* Hero */
+  .about-hero{
+    background:
+      radial-gradient(ellipse at 80% -10%, rgba(201,162,39,0.18), transparent 55%),
+      linear-gradient(180deg, var(--forest-deep) 0%, var(--forest-mid) 100%);
+    color:var(--ivory); padding:100px 0 90px; position:relative; overflow:hidden;
+  }
+  .about-hero::before{
+    content:''; position:absolute; inset:0;
+    background-image:linear-gradient(rgba(246,241,228,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(246,241,228,0.035) 1px, transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(ellipse at 60% 20%, black, transparent 70%);
+  }
+  .about-hero-inner{position:relative; z-index:2; max-width:640px;}
+  .eyebrow{display:inline-flex; align-items:center; gap:10px; font-family:var(--ff-mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--brass-light); margin-bottom:22px;}
+  .eyebrow::before{content:''; width:26px; height:1px; background:var(--brass);}
+  .about-hero h1{font-family:var(--ff-display); font-weight:600; font-size:clamp(2.4rem, 4.5vw, 3.6rem); line-height:1.1; margin-bottom:20px; letter-spacing:-0.01em;}
+  .about-hero h1 em{font-style:italic; color:var(--brass-light); font-weight:500;}
+  .about-hero p{font-size:1.05rem; line-height:1.65; color:var(--ivory-dim);}
+
+  /* Stats strip */
+  .stats-strip{background:var(--ink); padding:36px 0;}
+  .stats-strip .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:24px;}
+  .stat-block .stat-value{font-size:1.9rem; color:var(--brass-light);}
+  .stat-block .stat-label{color:var(--ivory-dim); margin-top:6px;}
+
+  /* Story section */
+  .section{padding:96px 0;}
+  .story-grid{display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:start;}
+  .section-eyebrow{font-family:var(--ff-mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); margin-bottom:14px; display:block;}
+  .story-grid h2{font-family:var(--ff-display); font-weight:600; font-size:clamp(1.8rem, 3vw, 2.4rem); color:var(--forest-deep); margin-bottom:20px; letter-spacing:-0.01em;}
+  .story-grid p{color:#4a4a42; font-size:.96rem; line-height:1.75; margin-bottom:16px;}
+  .story-quote{
+    background:#fff; border:1px solid var(--line); border-left:3px solid var(--brass); border-radius:var(--radius);
+    padding:26px; margin-top:8px;
+  }
+  .story-quote p{font-family:var(--ff-display); font-style:italic; font-size:1.15rem; color:var(--forest-deep); line-height:1.55; margin-bottom:10px;}
+  .story-quote span{font-family:var(--ff-mono); font-size:.74rem; color:#8a8a7f; text-transform:uppercase; letter-spacing:.05em;}
+
+  /* Values */
+  .values{background:var(--forest-deep); color:var(--ivory);}
+  .values .section-eyebrow{color:var(--brass);}
+  .values h2{color:var(--ivory);}
+  .values-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--line-dark); border:1px solid var(--line-dark); margin-top:44px;}
+  .value-item{background:var(--forest-deep); padding:34px 28px;}
+  .value-item .num{font-family:var(--ff-mono); font-size:.85rem; color:var(--brass); display:block; margin-bottom:18px;}
+  .value-item h4{font-family:var(--ff-display); font-size:1.15rem; font-weight:600; margin-bottom:10px;}
+  .value-item p{font-size:.88rem; color:var(--ivory-dim); line-height:1.6;}
+
+  /* Timeline */
+  .timeline{margin-top:44px; display:flex; flex-direction:column; gap:0;}
+  .timeline-item{display:grid; grid-template-columns:110px 1fr; gap:24px; padding:24px 0; border-bottom:1px dashed var(--line);}
+  .timeline-item:last-child{border-bottom:none;}
+  .timeline-year{font-family:var(--ff-mono); font-weight:700; color:var(--brass); font-size:1rem;}
+  .timeline-item h4{font-family:var(--ff-display); font-weight:600; font-size:1.05rem; margin-bottom:6px;}
+  .timeline-item p{color:#6b6b62; font-size:.9rem; line-height:1.6;}
+
+  /* CTA */
+  .cta-banner{background:var(--ivory); padding:90px 0; text-align:center;}
+  .cta-banner span.section-eyebrow{justify-content:center; display:flex;}
+  .cta-banner h2{font-family:var(--ff-display); font-weight:600; font-size:clamp(2rem, 4vw, 3rem); color:var(--forest-deep); margin:14px 0 30px; letter-spacing:-0.01em;}
+  .cta-banner h2 em{color:var(--brass); font-style:italic;}
+  .btn-primary{background:var(--forest-deep); color:var(--ivory); padding:15px 30px; font-weight:600; font-size:.92rem; border-radius:var(--radius); display:inline-block; transition:transform .25s ease;}
+  .btn-primary:hover{transform:translateY(-2px);}
+
+  footer{background:var(--ink); color:var(--ivory-dim); padding:40px 0 24px;}
+  .footer-bottom{display:flex; justify-content:space-between; font-size:.78rem; color:#7a7a70; flex-wrap:wrap; gap:10px;}
+
+  @media (max-width:900px){
+    .story-grid{grid-template-columns:1fr;}
+    .values-grid{grid-template-columns:1fr;}
+    .timeline-item{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="site-nav-brand"><span class="brand-mark">A</span><span>Aucta House</span></div>
+  <div class="site-links">
+    <a href="index.html">Home</a>
+    <a href="register.html">Register</a>
+    <a href="login.html">Login</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="auction-details.html">Auction Details</a>
+    <a href="my-bids.html">My Bids</a>
+    <a href="my-profile.html">My Profile</a>
+    <a href="about.html" class="current">About</a>
+    <a href="contact.html" class="accent">Contact</a>
+  </div>
+</nav>
+
+<header class="about-hero">
+  <div class="wrap about-hero-inner">
+    <span class="eyebrow">Our Story</span>
+    <h1>Built for people who'd rather <em>compete</em> for it.</h1>
+    <p>Aucta House is a live auction platform for collectors, hobbyists, and the mildly obsessed — bringing the energy of the auction floor to a browser tab, without losing the ceremony that makes winning feel like winning.</p>
+  </div>
+</header>
+
+<section class="stats-strip">
+  <div class="wrap">
+    <div class="stat-block"><span class="stat-value">18,000+</span><span class="stat-label">Registered Bidders</span></div>
+    <div class="stat-block"><span class="stat-value">240</span><span class="stat-label">Lots Closing Weekly</span></div>
+    <div class="stat-block"><span class="stat-value">$2.4M</span><span class="stat-label">Hammered Last Year</span></div>
+    <div class="stat-block"><span class="stat-value">96%</span><span class="stat-label">Bidder Satisfaction</span></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap story-grid">
+    <div>
+      <span class="section-eyebrow">Why We Started</span>
+      <h2>The floor, without the flight.</h2>
+      <p>Aucta House began as a simple frustration: the best auctions happened in rooms most people never got invited into. We wanted the same live tension — the countdown, the outbidding, the fall of the gavel — available to anyone with a paddle number and a bit of nerve.</p>
+      <p>Today, every lot on Aucta House runs on a real clock, every bid is binding the moment it's placed, and every closing is watched live by bidders who showed up for exactly that feeling.</p>
+    </div>
+    <div class="story-quote">
+      <p>"We didn't want to build another marketplace. We wanted to build the room where the gavel actually falls."</p>
+      <span>— Aucta House Founding Team</span>
+    </div>
+  </div>
+</section>
+
+<section class="values section">
+  <div class="wrap">
+    <span class="section-eyebrow">What We Stand For</span>
+    <h2>Three rules we don't break</h2>
+    <div class="values-grid">
+      <div class="value-item">
+        <span class="num">01</span>
+        <h4>Every Bid Is Binding</h4>
+        <p>No take-backs, no phantom bids. What you place is what you owe if the gavel falls in your favor.</p>
+      </div>
+      <div class="value-item">
+        <span class="num">02</span>
+        <h4>The Clock Doesn't Lie</h4>
+        <p>Every countdown is real-time and identical for every bidder watching the same lot.</p>
+      </div>
+      <div class="value-item">
+        <span class="num">03</span>
+        <h4>Provenance Comes First</h4>
+        <p>Every lot is authenticated and condition-reported before it's allowed on the floor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <span class="section-eyebrow">Milestones</span>
+    <h2 style="font-family:var(--ff-display); font-weight:600; font-size:clamp(1.8rem, 3vw, 2.4rem); color:var(--forest-deep); letter-spacing:-0.01em;">How we got here</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-year">2023</div>
+        <div><h4>Aucta House founded</h4><p>Launched with a single weekly auction and 40 founding bidders.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2024</div>
+        <div><h4>Live bidding goes real-time</h4><p>Rebuilt the bidding engine so every raise reflects instantly across all bidders.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2025</div>
+        <div><h4>Crossed 10,000 bidders</h4><p>Expanded categories from fine art into jewelry, timepieces, and rare books.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2026</div>
+        <div><h4>Today</h4><p>240+ lots close every week, watched by a growing floor of returning bidders.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-banner">
+  <div class="wrap">
+    <span class="section-eyebrow">Ready When You Are</span>
+    <h2>Come see what's <em>closing today</em>.</h2>
+    <a href="register.html" class="btn-primary">Create Your Account</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-bottom">
+    <span>© 2026 Aucta House.</span>
+    <span>All bids are final at the fall of the gavel.</span>
+  </div>
+</footer>
+
+</body>
+</html>
