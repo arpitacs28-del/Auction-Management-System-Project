@@ -82,6 +82,8 @@
     background:var(--brass); transition:width .3s ease;
   }
   .nav-links a:hover::after{width:100%;}
+  .nav-links a.current{color:var(--brass-light);}
+  .nav-links a.current::after{width:100%; background:var(--brass-light);}
   .nav-cta{
     border:1px solid var(--brass); color:var(--brass) !important;
     padding:9px 20px; border-radius:var(--radius);
@@ -281,7 +283,7 @@
   .lot-cta{
     width:100%; padding:12px; border:1px solid var(--forest-deep); color:var(--forest-deep);
     border-radius:var(--radius); font-weight:600; font-size:.85rem; letter-spacing:.02em;
-    transition:background .25s ease, color .25s ease;
+    transition:background .25s ease, color .25s ease; display:block; text-align:center;
   }
   .lot-cta:hover{background:var(--forest-deep); color:var(--ivory);}
 
@@ -348,16 +350,13 @@
 <nav class="nav" id="nav">
   <div class="nav-logo"><span class="nav-mark">A</span>Aucta&nbsp;House</div>
   <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="#">Register</a>
-    <a href="#">Login</a>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="#lots">Auction Details</a>
-    <a href="#">My Bids</a>
-    <a href="#">My Profile</a>
-    <a href="#">About</a>
-    <a href="#">Contact</a>
-    <a href="#" class="nav-cta">Sign In</a>
+    <a href="index.html" class="current">Home</a>
+    <a href="register.html">Register</a>
+    <a href="auction-details.html">Auction Details</a>
+    <a href="my-profile.html">My Profile</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="login.html" class="nav-cta">Sign In</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
@@ -394,7 +393,7 @@
           </div>
         </div>
         <div class="feature-actions">
-          <button class="bid-btn">Place Bid</button>
+          <a href="auction-details.html" class="bid-btn" style="text-align:center; display:block;">Place Bid</a>
           <button class="watch-btn" aria-label="Watch this lot">♡</button>
         </div>
       </div>
@@ -460,7 +459,7 @@
   <div class="wrap">
     <span class="section-eyebrow">Ready When You Are</span>
     <h2>Your next favorite thing is <em>one bid away</em>.</h2>
-    <a href="#" class="btn-primary" style="background:var(--forest-deep); color:var(--ivory); box-shadow:none;">Create Your Account</a>
+    <a href="login.html" class="btn-primary" style="background:var(--forest-deep); color:var(--ivory); box-shadow:none;">Create Your Account</a>
   </div>
 </section>
 
@@ -476,18 +475,18 @@
           <h5>Explore</h5>
           <a href="#lots">Live Lots</a>
           <a href="#how">How it Works</a>
-          <a href="#">Watchlist</a>
+          <a href="auction-details.html">Auction Details</a>
         </div>
         <div class="footer-col">
           <h5>Account</h5>
-          <a href="#">Sign In</a>
-          <a href="#">Register</a>
-          <a href="#">Bid History</a>
+          <a href="register.html">Register</a>
+          <a href="login.html">Sign In</a>
+          <a href="my-profile.html">My Profile</a>
         </div>
         <div class="footer-col">
           <h5>Support</h5>
-          <a href="#">Help Center</a>
-          <a href="#">Contact</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
         </div>
       </div>
     </div>
@@ -536,7 +535,7 @@
             <div class="lot-clock" data-seconds="${lot.closesIn}" id="clock-${i}">--:--</div>
           </div>
         </div>
-        <button class="lot-cta">Place Bid · ${lot.bids} bids</button>
+        <a href="auction-details.html" class="lot-cta">Place Bid · ${lot.bids} bids</a>
       </div>
     `;
     grid.appendChild(card);
