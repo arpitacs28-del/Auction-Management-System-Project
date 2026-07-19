@@ -261,6 +261,18 @@
 
   @media (max-width:1000px){ .profile-grid{grid-template-columns:1fr;} }
   @media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
+
+  /* ---------- BIDDER HISTORY ---------- */
+  .tab-row{display:flex; gap:4px; margin-bottom:0; border-bottom:1px solid var(--line); padding:0 24px;}
+  .tab-btn{
+    padding:11px 16px; font-size:.82rem; font-weight:600; color:#8a8a7f;
+    border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .2s ease, border-color .2s ease;
+  }
+  .tab-btn:hover{color:var(--forest-deep);}
+  .tab-btn.active{color:var(--forest-deep); border-color:var(--brass);}
+  .tab-count{font-family:var(--ff-mono); font-size:.7rem; margin-left:4px; color:var(--brass);}
+  .history-table .bid-row{grid-template-columns:44px 1.6fr 1fr 1fr 1fr auto;}
+  .status-lost{background:rgba(18,20,15,0.06); color:#8a8a7f;}
 </style>
 </head>
 <body>
@@ -382,6 +394,19 @@
       </div>
     </div>
 
+    <div class="panel" style="margin-top:24px; padding-bottom:8px;">
+      <div class="panel-head" style="border-bottom:none; padding-bottom:0;">
+        <h3>Bidder History</h3>
+      </div>
+      <div class="tab-row">
+        <button class="tab-btn active" data-filter="all">All<span class="tab-count">9</span></button>
+        <button class="tab-btn" data-filter="active">Active<span class="tab-count">4</span></button>
+        <button class="tab-btn" data-filter="won">Won<span class="tab-count">3</span></button>
+        <button class="tab-btn" data-filter="lost">Lost<span class="tab-count">2</span></button>
+      </div>
+      <div class="history-table" id="history-table" style="padding-bottom:20px;"></div>
+    </div>
+
     <div class="panel" style="margin-top:24px;">
       <div class="panel-head"><h3>Account</h3></div>
       <div class="danger-zone">
@@ -409,6 +434,80 @@
       alert('Deactivation captured. Connect this to your Flask /deactivate route.');
     }
   });
+
+  const bidHistory = [
+    { num:'0102', title:'Coastal Study in Oil', bid:1850, status:'active', label:'Winning', closesIn:320 },
+    { num:'0044', title:'Edwardian Sapphire Ring', bid:3100, status:'active', label:'Outbid', closesIn:45 },
+    { num:'0156', title:'First Edition Field Notes', bid:2200, status:'active', label:'Winning', closesIn:610 },
+    { num:'0211', title:'Hand-Thrown Stoneware Set', bid:415, status:'active', label:'Outbid', closesIn:200 },
+    { num:'0033', title:'Brass Compass', bid:390, status:'won', label:'Won', closesIn:0 },
+    { num:'0021', title:'Ceramic Vase Trio', bid:210, status:'won', label:'Won', closesIn:0 },
+    { num:'0019', title:'Leather Bound Atlas', bid:1120, status:'won', label:'Won', closesIn:0 },
+    { num:'0071', title:'Silver Pocket Watch', bid:860, status:'lost', label:'Lost', closesIn:0 },
+    { num:'0058', title:'Hand-Woven Wall Rug', bid:540, status:'lost', label:'Lost', closesIn:0 },
+  ];
+
+  const historyTable = document.getElementById('history-table');
+
+  function formatClock(totalSeconds) {
+    if (totalSeconds <= 0) return 'Closed';
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  function startHistoryClocks() {
+    historyTable.querySelectorAll('.clock-sm').forEach(el => {
+      let seconds = parseInt(el.dataset.seconds, 10);
+      el.textContent = formatClock(seconds);
+      setInterval(() => {
+        seconds = seconds > 0 ? seconds - 1 : 600 + Math.floor(Math.random() * 300);
+        el.textContent = formatClock(seconds);
+      }, 1000);
+    });
+  }
+
+  function renderHistory(filter) {
+    historyTable.innerHTML = '';
+    const rows = bidHistory.filter(b => filter === 'all' ? true : b.status === filter);
+    rows.forEach((b, i) => {
+      const row = document.createElement('div');
+      row.className = 'bid-row';
+      const statusClass = b.status === 'active' ? (b.label === 'Winning' ? 'status-winning' : 'status-outbid') : (b.status === 'won' ? 'status-winning' : 'status-lost');
+      const cta = b.status === 'active' ? (b.label === 'Winning' ? 'Raise Bid' : 'Rebid Now') : 'View Lot';
+      const clockHtml = b.status === 'active'
+        ? `<div class="clock-sm" data-seconds="${b.closesIn}" id="prof-clock-${i}">--:--</div>`
+        : `<div class="lot-num">Closed</div>`;
+      row.innerHTML = `
+        <div class="bid-thumb">${b.num}</div>
+        <div class="bid-info">
+          <div class="title">${b.title}</div>
+          <div class="lot-num">Lot No. ${b.num}</div>
+        </div>
+        <div>
+          <div class="stat-label">Your Bid</div>
+          <div class="stat-value" style="font-size:.95rem;">$${b.bid.toLocaleString()}</div>
+        </div>
+        <div class="bid-status ${statusClass}">${b.label}</div>
+        <div>${clockHtml}</div>
+        <div style="text-align:right;">
+          <a href="auction-details.html" class="row-cta">${cta}</a>
+        </div>
+      `;
+      historyTable.appendChild(row);
+    });
+    startHistoryClocks();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHistory(btn.dataset.filter);
+    });
+  });
+
+  renderHistory('all');
 </script>
 
 </body>
