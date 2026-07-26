@@ -13,9 +13,11 @@ db = SQLAlchemy(app)#initialize the database
 #user model
 class User(db.Model):
      id = db.Column(db.Integer,primary_key = True)
-     name = db.Column(db.String(100))
+     fname = db.Column(db.String(100))
+     lname = db.Column(db.String(100))
      email = db.Column(db.String(100),unique = True)
      password = db.Column(db.String(100))
+     cpass = db.Column(db.String(100))
 
 #Database initialization with app context
 with app.app_context():
@@ -23,7 +25,7 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    return render_template('00_index.html')
+    return render_template('home.html')
 
 @app.route('/home')
 def home():
@@ -32,13 +34,14 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
+        fname = request.form.get('fname', '').strip()
+        lname = request.form.get('lname', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
 
         #validations
-        if not name or len(name.strip())<2:
+        if not fname or len(fname.strip())<2:
             flash('Name must be at least 2 characters long.', 'error')
             return redirect(url_for('register'))
         
@@ -67,9 +70,11 @@ def register():
         #create new user
         hashed_password = generate_password_hash(password)
         new_user = User(
-            name=name.strip(),
-            email=email.strip(),
-            password=hashed_password
+            fname=fname,
+            lname=lname,
+            email=email,
+            password=hashed_password,
+            cpass=confirm_password
         )
         try:
             db.session.add(new_user)
@@ -83,9 +88,21 @@ def register():
         
     return render_template('register.html')
 
-@app.route('/sign_in')
+@app.route('/sign_in', methods=['GET', 'POST'])
 def sign_in():
-      return render_template('sign_in.html')
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            session['user_name'] = user.fname or user.email
+            flash('sign_in successful!', 'success')
+            return redirect(url_for('my_profile'))
+        else:
+            flash('Invalid email or password.', 'error')
+    return render_template('sign_in.html')
 
 @app.route('/auction_details')
 def auction_details():
