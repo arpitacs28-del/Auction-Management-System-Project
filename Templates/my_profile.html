@@ -280,13 +280,19 @@
 <nav class="site-nav">
   <div class="site-nav-brand"><span class="brand-mark">A</span><span>Aucta House</span></div>
   <div class="site-links">
-    <a href="index.html">Home</a>
-    <a href="register.html">Register</a>
-    <a href="login.html">Sign In</a>
-    <a href="auction-details.html">Auction Details</a>
-    <a href="my-profile.html" class="current">My Profile</a>
-    <a href="about.html">About</a>
-    <a href="contact.html" class="accent">Contact</a>
+    <a href="{{ url_for('index') }}">Home</a>
+    {% if not current_user %}
+    <a href="{{ url_for('register') }}">Register</a>
+    <a href="{{ url_for('login') }}">Sign In</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    {% else %}
+    <a href="{{ url_for('create_auction') }}">Create Auction</a>
+    <a href="{{ url_for('my_profile') }}" class="current">My Profile</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
   </div>
 </nav>
 
@@ -298,15 +304,15 @@
         <p>Manage your bidder details, payment methods, and account settings.</p>
       </div>
       <div class="topbar-actions">
-        <div class="avatar">B0231</div>
+        <div class="avatar">{{ user.username[:1].upper() }}</div>
       </div>
     </div>
 
     <div class="profile-header">
-      <div class="profile-avatar-lg">B0231</div>
+      <div class="profile-avatar-lg">{{ user.username[:1].upper() }}</div>
       <div>
-        <h2>Jordan Ellis <span class="paddle-tag">No. 0231</span></h2>
-        <div class="meta">Bidder since 2023 · jordan.ellis@example.com</div>
+        <h2>{{ user.username }} <span class="paddle-tag">No. {{ '%04d' % user.id }}</span></h2>
+        <div class="meta">Bidder since {{ user.created_at.strftime('%Y') }} · {{ user.email }}</div>
       </div>
       <span class="verify-pill">✓ Verified Bidder</span>
     </div>
@@ -318,17 +324,13 @@
           <form id="profile-form">
             <div class="field-row">
               <div class="field">
-                <label for="first-name">First Name</label>
-                <input type="text" id="first-name" value="Jordan">
-              </div>
-              <div class="field">
-                <label for="last-name">Last Name</label>
-                <input type="text" id="last-name" value="Ellis">
+                <label for="first-name">Username</label>
+                <input type="text" id="first-name" value="{{ user.username }}" readonly>
               </div>
             </div>
             <div class="field">
               <label for="email">Email Address</label>
-              <input type="email" id="email" value="jordan.ellis@example.com">
+              <input type="email" id="email" value="{{ user.email }}" readonly>
             </div>
             <div class="field-row">
               <div class="field">
@@ -399,12 +401,88 @@
         <h3>Bidder History</h3>
       </div>
       <div class="tab-row">
-        <button class="tab-btn active" data-filter="all">All<span class="tab-count">9</span></button>
-        <button class="tab-btn" data-filter="active">Active<span class="tab-count">4</span></button>
-        <button class="tab-btn" data-filter="won">Won<span class="tab-count">3</span></button>
-        <button class="tab-btn" data-filter="lost">Lost<span class="tab-count">2</span></button>
+        <button class="tab-btn active" data-filter="all">All</button>
       </div>
-      <div class="history-table" id="history-table" style="padding-bottom:20px;"></div>
+      <div class="history-table" id="history-table" style="padding-bottom:20px;">
+        {% for b in bidded_items %}
+          <div class="bid-row">
+            <div class="bid-thumb">{{ '%04d' % b.item.id }}</div>
+            <div class="bid-info">
+              <div class="title">{{ b.item.title }}</div>
+              <div class="lot-num">Lot No. {{ '%04d' % b.item.id }}</div>
+            </div>
+            <div>
+              <div class="stat-label">Your Max Bid</div>
+              <div class="stat-value" style="font-size:.95rem;">${{ "%.2f"|format(b.max_user_bid) }}</div>
+            </div>
+            
+            {% if b.item.status == 'active' %}
+              {% if b.item.current_bid == b.max_user_bid %}
+                <div class="bid-status status-winning">Highest Bid</div>
+              {% else %}
+                <div class="bid-status status-outbid">Outbid</div>
+              {% endif %}
+              <div>
+                <div class="clock-sm" data-seconds="{{ (b.item.end_time - now).total_seconds() | int }}">--:--</div>
+              </div>
+            {% else %}
+              {% if b.item.winner_id == user.id %}
+                <div class="bid-status status-winning">Won</div>
+              {% else %}
+                <div class="bid-status status-lost">Lost</div>
+              {% endif %}
+              <div>
+                <div class="lot-num">Closed</div>
+              </div>
+            {% endif %}
+            
+            <div style="text-align:right;">
+              <a href="{{ url_for('auction_detail', item_id=b.item.id) }}" class="row-cta">View Lot</a>
+            </div>
+          </div>
+        {% else %}
+          <div style="padding:24px; color:#8a8a7f;">You haven't placed any bids yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <div class="panel" style="margin-top:24px; padding-bottom:8px;">
+      <div class="panel-head" style="border-bottom:none; padding-bottom:0;">
+        <h3>My Auctions</h3>
+      </div>
+      <div class="history-table" style="padding-bottom:20px; padding-top:20px;">
+        {% for item in my_auctions %}
+          <div class="bid-row">
+            <div class="bid-thumb">{{ '%04d' % item.id }}</div>
+            <div class="bid-info">
+              <div class="title">{{ item.title }}</div>
+              <div class="lot-num">Lot No. {{ '%04d' % item.id }}</div>
+            </div>
+            <div>
+              <div class="stat-label">Current Bid</div>
+              <div class="stat-value" style="font-size:.95rem;">${{ "%.2f"|format(item.current_bid) }}</div>
+            </div>
+            
+            {% if item.status == 'active' %}
+              <div class="bid-status status-winning">Live</div>
+              <div>
+                <div class="clock-sm" data-seconds="{{ (item.end_time - now).total_seconds() | int }}">--:--</div>
+              </div>
+            {% else %}
+              <div class="bid-status status-lost">Closed</div>
+              <div>
+                <div class="lot-num">Closed</div>
+              </div>
+            {% endif %}
+            
+            <div style="text-align:right;">
+              <a href="{{ url_for('auction_detail', item_id=item.id) }}" class="row-cta">View Lot</a>
+            </div>
+          </div>
+        {% else %}
+          <div style="padding:24px; color:#8a8a7f;">You haven't created any auctions yet.</div>
+        {% endfor %}
+      </div>
     </div>
 
     <div class="panel" style="margin-top:24px;">
@@ -435,20 +513,6 @@
     }
   });
 
-  const bidHistory = [
-    { num:'0102', title:'Coastal Study in Oil', bid:1850, status:'active', label:'Winning', closesIn:320 },
-    { num:'0044', title:'Edwardian Sapphire Ring', bid:3100, status:'active', label:'Outbid', closesIn:45 },
-    { num:'0156', title:'First Edition Field Notes', bid:2200, status:'active', label:'Winning', closesIn:610 },
-    { num:'0211', title:'Hand-Thrown Stoneware Set', bid:415, status:'active', label:'Outbid', closesIn:200 },
-    { num:'0033', title:'Brass Compass', bid:390, status:'won', label:'Won', closesIn:0 },
-    { num:'0021', title:'Ceramic Vase Trio', bid:210, status:'won', label:'Won', closesIn:0 },
-    { num:'0019', title:'Leather Bound Atlas', bid:1120, status:'won', label:'Won', closesIn:0 },
-    { num:'0071', title:'Silver Pocket Watch', bid:860, status:'lost', label:'Lost', closesIn:0 },
-    { num:'0058', title:'Hand-Woven Wall Rug', bid:540, status:'lost', label:'Lost', closesIn:0 },
-  ];
-
-  const historyTable = document.getElementById('history-table');
-
   function formatClock(totalSeconds) {
     if (totalSeconds <= 0) return 'Closed';
     const m = Math.floor(totalSeconds / 60);
@@ -457,57 +521,16 @@
   }
 
   function startHistoryClocks() {
-    historyTable.querySelectorAll('.clock-sm').forEach(el => {
+    document.querySelectorAll('.clock-sm').forEach(el => {
       let seconds = parseInt(el.dataset.seconds, 10);
       el.textContent = formatClock(seconds);
       setInterval(() => {
-        seconds = seconds > 0 ? seconds - 1 : 600 + Math.floor(Math.random() * 300);
+        seconds = seconds > 0 ? seconds - 1 : 0;
         el.textContent = formatClock(seconds);
       }, 1000);
     });
   }
-
-  function renderHistory(filter) {
-    historyTable.innerHTML = '';
-    const rows = bidHistory.filter(b => filter === 'all' ? true : b.status === filter);
-    rows.forEach((b, i) => {
-      const row = document.createElement('div');
-      row.className = 'bid-row';
-      const statusClass = b.status === 'active' ? (b.label === 'Winning' ? 'status-winning' : 'status-outbid') : (b.status === 'won' ? 'status-winning' : 'status-lost');
-      const cta = b.status === 'active' ? (b.label === 'Winning' ? 'Raise Bid' : 'Rebid Now') : 'View Lot';
-      const clockHtml = b.status === 'active'
-        ? `<div class="clock-sm" data-seconds="${b.closesIn}" id="prof-clock-${i}">--:--</div>`
-        : `<div class="lot-num">Closed</div>`;
-      row.innerHTML = `
-        <div class="bid-thumb">${b.num}</div>
-        <div class="bid-info">
-          <div class="title">${b.title}</div>
-          <div class="lot-num">Lot No. ${b.num}</div>
-        </div>
-        <div>
-          <div class="stat-label">Your Bid</div>
-          <div class="stat-value" style="font-size:.95rem;">$${b.bid.toLocaleString()}</div>
-        </div>
-        <div class="bid-status ${statusClass}">${b.label}</div>
-        <div>${clockHtml}</div>
-        <div style="text-align:right;">
-          <a href="auction-details.html" class="row-cta">${cta}</a>
-        </div>
-      `;
-      historyTable.appendChild(row);
-    });
-    startHistoryClocks();
-  }
-
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderHistory(btn.dataset.filter);
-    });
-  });
-
-  renderHistory('all');
+  startHistoryClocks();
 </script>
 
 </body>

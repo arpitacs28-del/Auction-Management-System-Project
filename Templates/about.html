@@ -127,13 +127,19 @@
 <nav class="site-nav">
   <div class="site-nav-brand"><span class="brand-mark">A</span><span>Aucta House</span></div>
   <div class="site-links">
-    <a href="index.html">Home</a>
-    <a href="register.html">Register</a>
-    <a href="login.html">Sign In</a>
-    <a href="auction-details.html">Auction Details</a>
-    <a href="my-profile.html">My Profile</a>
-    <a href="about.html" class="current">About</a>
-    <a href="contact.html" class="accent">Contact</a>
+    <a href="{{ url_for('index') }}">Home</a>
+    {% if not current_user %}
+    <a href="{{ url_for('register') }}">Register</a>
+    <a href="{{ url_for('login') }}">Sign In</a>
+    <a href="{{ url_for('about') }}" class="current">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    {% else %}
+    <a href="{{ url_for('create_auction') }}">Create Auction</a>
+    <a href="{{ url_for('my_profile') }}">My Profile</a>
+    <a href="{{ url_for('about') }}" class="current">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
   </div>
 </nav>
 

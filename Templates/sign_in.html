@@ -151,13 +151,19 @@
 <nav class="site-nav">
   <div class="site-nav-brand"><span class="brand-mark">A</span><span>Aucta House</span></div>
   <div class="site-links">
-    <a href="index.html">Home</a>
-    <a href="register.html">Register</a>
-    <a href="sign-in.html" class="current">Sign In</a>
-    <a href="auction-details.html">Auction Details</a>
-    <a href="my-profile.html">My Profile</a>
-    <a href="about.html">About</a>
-    <a href="contact.html" class="accent">Contact</a>
+    <a href="{{ url_for('index') }}">Home</a>
+    {% if not current_user %}
+    <a href="{{ url_for('register') }}">Register</a>
+    <a href="{{ url_for('login') }}" class="current">Sign In</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    {% else %}
+    <a href="{{ url_for('create_auction') }}">Create Auction</a>
+    <a href="{{ url_for('my_profile') }}">My Profile</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
   </div>
 </nav>
 
@@ -185,10 +191,24 @@
       <div class="auth-card-head">
         <span class="auth-tag">Sign In</span>
         <h1>Welcome back, bidder</h1>
-        <p>New here? <a href="register.html">Create an account</a></p>
+        <p>New here? <a href="{{ url_for('register') }}">Create an account</a></p>
       </div>
 
-      <form method="POST" action="{{url_for('sign_in')}}" id="sign-in-form" novalidate>
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div style="padding:10px 14px; border-radius:2px; margin-bottom:16px; font-size:0.86rem; font-weight:600; text-align:center;
+              {% if category == 'success' %}background:#d4edda; color:#155724; border:1px solid #c3e6cb;
+              {% elif category == 'danger' %}background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;
+              {% else %}background:#e2e3e5; color:#383d41; border:1px solid #d6d8db;{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{url_for('login')}}" id="sign-in-form">
         <div class="field">
           <label for="email">Email Address</label>
           <input type="email" id="email" name="email" placeholder="you@example.com" required>
@@ -222,11 +242,6 @@
 </div>
 
 <script>
-  const form = document.getElementById('login-form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('Credentials captured. Connect this form to your Flask /login route to authenticate.');
-  });
 </script>
 
 </body>

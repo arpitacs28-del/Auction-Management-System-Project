@@ -276,7 +276,7 @@ def login():
         return redirect(url_for('index'))
 
     if request.method == 'POST':
-        username_or_email = request.form.get('username_or_email', '').strip()
+        username_or_email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
 
         user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
@@ -290,7 +290,7 @@ def login():
         else:
             flash('Invalid username/email or password. Please try again.', 'danger')
 
-    return render_template('login.html')
+    return render_template('sign_in.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -305,26 +305,28 @@ def register():
         return redirect(url_for('index'))
 
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        fname = request.form.get('fname', '').strip()
+        lname = request.form.get('lname', '').strip()
+        username = f"{fname} {lname}".strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '').strip()
         confirm_password = request.form.get('confirm_password', '').strip()
 
         if not username or not email or not password:
             flash('All fields are required.', 'danger')
-            return render_template('login.html', show_register=True)
+            return render_template('register.html')
 
         if password != confirm_password:
             flash('Passwords do not match.', 'danger')
-            return render_template('login.html', show_register=True)
+            return render_template('register.html')
 
         if User.query.filter_by(username=username).first():
             flash('Username is already taken. Choose another.', 'danger')
-            return render_template('login.html', show_register=True)
+            return render_template('register.html')
 
         if User.query.filter_by(email=email).first():
             flash('Email address is already registered.', 'danger')
-            return render_template('login.html', show_register=True)
+            return render_template('register.html')
 
         new_user = User(username=username, email=email)
         new_user.set_password(password)
@@ -336,7 +338,7 @@ def register():
         flash('Account registered successfully! Welcome to the Auction Bidding System.', 'success')
         return redirect(url_for('index'))
 
-    return render_template('login.html', show_register=True)
+    return render_template('register.html')
 
 
 @app.route('/logout')
@@ -425,12 +427,16 @@ def auction_detail(item_id):
     if highest_bidder and 'user_id' in session:
         user_is_highest_bidder = (highest_bidder.id == session['user_id'])
 
+    # Find related items
+    related_items = Item.query.filter(Item.status == 'active', Item.id != item_id).limit(4).all()
+
     return render_template(
-        'auction_detail.html',
+        'auction_details.html',
         item=item,
         bids=bids,
         highest_bidder=highest_bidder,
-        user_is_highest_bidder=user_is_highest_bidder
+        user_is_highest_bidder=user_is_highest_bidder,
+        related_items=related_items
     )
 
 
@@ -499,15 +505,15 @@ def close_auction(item_id):
     return redirect(url_for('auction_detail', item_id=item.id))
 
 
-@app.route('/my-bids')
+@app.route('/my-profile')
 @login_required
 # ------------------------------------------------------------------------------
-# Route: /my-bids
-# Displays all auctions where the current user has placed bids.
-# It groups multiple bids on the same item together.
+# Route: /my-profile
+# Displays all auctions where the current user has placed bids, won, or created.
 # ------------------------------------------------------------------------------
-def my_bids():
+def my_profile():
     user_id = session['user_id']
+    user = User.query.get(user_id)
     # Get all distinct items the user has bid on
     user_bids = Bid.query.filter_by(user_id=user_id).order_by(Bid.timestamp.desc()).all()
 
@@ -524,19 +530,17 @@ def my_bids():
             if b.amount > bidded_items_map[b.item_id]['max_user_bid']:
                 bidded_items_map[b.item_id]['max_user_bid'] = b.amount
 
-    return render_template('my_bids.html', bidded_items=bidded_items_map.values())
+    my_auctions_items = Item.query.filter_by(seller_id=user_id).order_by(Item.start_time.desc()).all()
+    
+    return render_template('my_profile.html', bidded_items=bidded_items_map.values(), my_auctions=my_auctions_items, user=user)
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
-@app.route('/my-auctions')
-@login_required
-# ------------------------------------------------------------------------------
-# Route: /my-auctions
-# Displays all auctions created by the currently logged-in user.
-# ------------------------------------------------------------------------------
-def my_auctions():
-    user_id = session['user_id']
-    items = Item.query.filter_by(seller_id=user_id).order_by(Item.start_time.desc()).all()
-    return render_template('my_auctions.html', items=items)
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 
 # ==============================================================================

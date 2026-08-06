@@ -145,80 +145,134 @@
 <nav class="site-nav">
   <div class="site-nav-brand"><span class="brand-mark">A</span><span>Aucta House</span></div>
   <div class="site-links">
-    <a href="index.html">Home</a>
-    <a href="register.html">Register</a>
-    <a href="login.html">Sign In</a>
-    <a href="auction-details.html" class="current">Auction Details</a>
-    <a href="my-profile.html">My Profile</a>
-    <a href="about.html">About</a>
-    <a href="contact.html" class="accent">Contact</a>
+    <a href="{{ url_for('index') }}">Home</a>
+    {% if not current_user %}
+    <a href="{{ url_for('register') }}">Register</a>
+    <a href="{{ url_for('login') }}">Sign In</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    {% else %}
+    <a href="{{ url_for('create_auction') }}">Create Auction</a>
+    <a href="{{ url_for('my_profile') }}">My Profile</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('contact') }}" class="accent">Contact</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
   </div>
 </nav>
 
 <div class="wrap">
-  <div class="crumb"><a href="index.html">Home</a><span>/</span><a href="index.html#lots">Live Lots</a><span>/</span>Lot 0044</div>
+  <div class="crumb"><a href="{{ url_for('index') }}">Home</a><span>/</span><a href="{{ url_for('index') }}#lots">Live Lots</a><span>/</span>Lot {{ '%04d' % item.id }}</div>
+
+  <!-- Flash Messages -->
+  <div style="margin-top:20px;">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div style="padding:10px 14px; border-radius:2px; margin-bottom:16px; font-size:0.86rem; font-weight:600; text-align:center;
+          {% if category == 'success' %}background:#d4edda; color:#155724; border:1px solid #c3e6cb;
+          {% elif category == 'danger' %}background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;
+          {% else %}background:#e2e3e5; color:#383d41; border:1px solid #d6d8db;{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  </div>
 
   <div class="detail-grid">
     <div>
-      <div class="gallery-main">
-        <span class="gallery-tag">No. 0044</span>
-        Lot 0044 — Primary Image
+      <div class="gallery-main" style="{% if item.image_url %}background: url('{{ item.image_url }}') center/cover;{% endif %}">
+        <span class="gallery-tag">No. {{ '%04d' % item.id }}</span>
       </div>
       <div class="gallery-thumbs">
-        <div class="thumb active"></div>
-        <div class="thumb"></div>
-        <div class="thumb"></div>
-        <div class="thumb"></div>
+        <div class="thumb active" style="{% if item.image_url %}background: url('{{ item.image_url }}') center/cover;{% endif %}"></div>
       </div>
 
       <div class="lot-description">
         <h3>About this lot</h3>
-        <p>An Edwardian-era sapphire ring set in 18k white gold, featuring a 2.1-carat cornflower blue sapphire flanked by old European-cut diamonds. The piece retains its original box hallmark and has been appraised and authenticated by an independent gemologist.</p>
-        <p>Minor surface wear consistent with age; band has been professionally resized once. Comes with a full condition report and certificate of authenticity.</p>
-        <div class="provenance-list">
-          <div class="provenance-item"><div class="stat-label">Era</div><div class="val">Edwardian, c. 1905</div></div>
-          <div class="provenance-item"><div class="stat-label">Material</div><div class="val">18k White Gold, Sapphire</div></div>
-          <div class="provenance-item"><div class="stat-label">Condition</div><div class="val">Excellent, minor wear</div></div>
-          <div class="provenance-item"><div class="stat-label">Certificate</div><div class="val">Included</div></div>
-        </div>
+        <p>{{ item.description }}</p>
       </div>
 
       <div class="bid-history">
         <h3>Bid history</h3>
-        <div id="history-list"></div>
+        <div id="history-list">
+          {% for bid in bids %}
+          <div class="history-row">
+            <div class="history-avatar">{{ '%04d' % bid.bidder.id }}</div>
+            <div class="history-bidder">Bidder {{ bid.bidder.username }}</div>
+            <div class="history-time">{{ bid.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
+            <div class="history-amount">${{ "%.2f"|format(bid.amount) }}</div>
+          </div>
+          {% else %}
+          <p style="font-size:0.9rem; color:#8a8a7f;">No bids yet.</p>
+          {% endfor %}
+        </div>
       </div>
     </div>
 
     <div class="bid-panel">
       <div class="bid-panel-top">
-        <span class="paddle-tag">Lot 0044</span>
+        <span class="paddle-tag">Lot {{ '%04d' % item.id }}</span>
+        {% if item.status == 'active' and not item.is_expired() %}
         <span class="live-pill"><span class="live-dot"></span>Live Now</span>
+        {% else %}
+        <span class="live-pill" style="color:#6b6b62;">Closed</span>
+        {% endif %}
       </div>
-      <h1>Edwardian Sapphire Ring</h1>
-      <p class="sub">Jewelry · Closing today</p>
+      <h1>{{ item.title }}</h1>
+      <p class="sub">By {{ item.seller.username }}</p>
 
       <div class="bid-panel-stats">
         <div>
           <div class="stat-label">Current Bid</div>
-          <div class="stat-value">$3,100</div>
+          <div class="stat-value">${{ "%.2f"|format(item.current_bid) }}</div>
         </div>
         <div style="text-align:right;">
           <div class="stat-label">Closes In</div>
-          <div class="clock" id="detail-clock">00:45</div>
+          {% if item.status == 'closed' or item.is_expired() %}
+          <div class="clock" style="color:#6b6b62;">Closed</div>
+          {% else %}
+          <div class="clock" id="detail-clock" data-seconds="{{ (item.end_time - now).total_seconds() | int }}">00:00</div>
+          {% endif %}
         </div>
       </div>
 
-      <div class="bid-input-row">
-        <input type="text" value="$3,200" id="bid-amount">
-        <button class="bid-btn-lg" style="width:auto; padding:13px 20px;" id="place-bid">Bid</button>
-      </div>
-      <div class="quick-bids">
-        <button class="quick-bid" data-amt="3200">$3,200</button>
-        <button class="quick-bid" data-amt="3350">$3,350</button>
-        <button class="quick-bid" data-amt="3500">$3,500</button>
-      </div>
-      <button class="watch-btn-lg">♡ Add to Watchlist</button>
-      <p class="bid-note">27 bids placed · 14 bidders watching. All bids are binding once confirmed.</p>
+      {% if item.status == 'active' and not item.is_expired() %}
+        {% if current_user %}
+          {% if current_user.id != item.seller_id %}
+            <form method="POST" action="{{ url_for('place_bid', item_id=item.id) }}">
+              <div class="bid-input-row">
+                <input type="text" name="bid_amount" value="{{ '%.2f'|format(item.min_next_bid()) }}" id="bid-amount">
+                <button type="submit" class="bid-btn-lg" style="width:auto; padding:13px 20px;">Bid</button>
+              </div>
+              <div class="quick-bids">
+                <button type="button" class="quick-bid" data-amt="{{ item.min_next_bid() }}">${{ "%.2f"|format(item.min_next_bid()) }}</button>
+                <button type="button" class="quick-bid" data-amt="{{ item.min_next_bid() + 50 }}">${{ "%.2f"|format(item.min_next_bid() + 50) }}</button>
+                <button type="button" class="quick-bid" data-amt="{{ item.min_next_bid() + 100 }}">${{ "%.2f"|format(item.min_next_bid() + 100) }}</button>
+              </div>
+            </form>
+          {% else %}
+            <form method="POST" action="{{ url_for('close_auction', item_id=item.id) }}">
+              <button type="submit" class="bid-btn-lg" style="background:var(--live-red);">Close Auction Early</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <a href="{{ url_for('login') }}" class="bid-btn-lg" style="display:block; text-align:center;">Sign In to Bid</a>
+        {% endif %}
+      {% else %}
+        {% if item.winner %}
+          <div style="padding:15px; background:#d4edda; color:#155724; font-weight:600; border-radius:2px; text-align:center; margin-bottom:15px;">
+            Winner: Bidder {{ item.winner.username }}
+          </div>
+        {% else %}
+          <div style="padding:15px; background:#e2e3e5; color:#383d41; font-weight:600; border-radius:2px; text-align:center; margin-bottom:15px;">
+            Auction ended with no bids.
+          </div>
+        {% endif %}
+      {% endif %}
+
+      <p class="bid-note">{{ bids|length }} bids placed. All bids are binding once confirmed.</p>
     </div>
   </div>
 </div>
@@ -226,65 +280,34 @@
 <section class="related">
   <div class="wrap">
     <h3>You may also like</h3>
-    <div class="related-grid" id="related-grid"></div>
+    <div class="related-grid" id="related-grid">
+      {% for rel in related_items %}
+      <a href="{{ url_for('auction_detail', item_id=rel.id) }}" class="related-card">
+        <div class="related-img" style="{% if rel.image_url %}background: url('{{ rel.image_url }}') center/cover;{% endif %}"></div>
+        <div class="related-body">
+          <div class="title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ rel.title }}</div>
+          <div class="stat-label">Current Bid</div>
+          <div class="stat-value">${{ "%.2f"|format(rel.current_bid) }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
   </div>
 </section>
 
 <script>
-  const history = [
-    ['B0231', '$3,100', 'Just now'],
-    ['B0198', '$2,950', '4 min ago'],
-    ['B0077', '$2,800', '11 min ago'],
-    ['B0231', '$2,650', '20 min ago'],
-    ['B0154', '$2,500', '35 min ago'],
-  ];
-  const list = document.getElementById('history-list');
-  history.forEach(([bidder, amount, time]) => {
-    const row = document.createElement('div');
-    row.className = 'history-row';
-    row.innerHTML = `
-      <div class="history-avatar">${bidder.slice(-4)}</div>
-      <div class="history-bidder">Bidder ${bidder}</div>
-      <div class="history-time">${time}</div>
-      <div class="history-amount">${amount}</div>
-    `;
-    list.appendChild(row);
-  });
-
-  const related = [
-    { num:'0102', title:'Coastal Study in Oil', bid: 1850 },
-    { num:'0087', title:'Art Deco Travel Clock', bid: 640 },
-    { num:'0198', title:'Mid-Century Walnut Desk', bid: 980 },
-    { num:'0211', title:'Hand-Thrown Stoneware Set', bid: 415 },
-  ];
-  const relGrid = document.getElementById('related-grid');
-  related.forEach(r => {
-    const card = document.createElement('a');
-    card.href = 'auction-details.html';
-    card.className = 'related-card';
-    card.innerHTML = `
-      <div class="related-img"></div>
-      <div class="related-body">
-        <div class="title">${r.title}</div>
-        <div class="stat-label">Current Bid</div>
-        <div class="stat-value">$${r.bid.toLocaleString()}</div>
-      </div>
-    `;
-    relGrid.appendChild(card);
-  });
-
   function formatClock(s){ if(s<=0) return 'Closed'; const m=Math.floor(s/60); const r=s%60; return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`; }
-  let seconds = 45;
   const clockEl = document.getElementById('detail-clock');
-  setInterval(() => { seconds = seconds>0 ? seconds-1 : 300; clockEl.textContent = formatClock(seconds); }, 1000);
+  if(clockEl) {
+    let seconds = parseInt(clockEl.dataset.seconds, 10);
+    clockEl.textContent = formatClock(seconds);
+    setInterval(() => { seconds = seconds>0 ? seconds-1 : 0; clockEl.textContent = formatClock(seconds); }, 1000);
+  }
 
   document.querySelectorAll('.quick-bid').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.getElementById('bid-amount').value = '$' + Number(btn.dataset.amt).toLocaleString();
+      document.getElementById('bid-amount').value = btn.dataset.amt;
     });
-  });
-  document.getElementById('place-bid').addEventListener('click', () => {
-    alert('Bid captured. Connect this to your Flask /bid route to place it live.');
   });
   document.querySelectorAll('.thumb').forEach(t => {
     t.addEventListener('click', () => {
